@@ -1,0 +1,6 @@
+@asp_dot_net_core_web_api_users_database_HostAddress = http://localhost:5083
+
+GET {{asp_dot_net_core_web_api_user_database_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
