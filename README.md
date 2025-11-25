@@ -58,7 +58,7 @@ or
 "Server=host.docker.internal,1433;Database=UserDbContext;User Id=SA;Password=SqlExpress@123;TrustServerCertificate=True;"
 ```
 
-### Running the Application with SQL Express in Docker:
+## Running the Application with SQL Express in Docker:
 Before starting your ASP.NET Core Web API, make sure the SQL Server Express
 container is running. You can do this either via bash/terminal or manually
 through Docker Desktop.
