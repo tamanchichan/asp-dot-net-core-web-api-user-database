@@ -27,14 +27,15 @@ namespace asp_dot_net_core_web_api_users_database.Areas.Identity.Data
                 }
             }
 
+            string adminUserName = "admin";
             string adminEmail = "admin@email.com";
-            string adminPassword = "Admin@123";
+            string adminPassword = "admin";
 
             if (await userManager.FindByEmailAsync(adminEmail) == null)
             {
                 IdentityUser adminUser = new IdentityUser
                 {
-                    UserName = adminEmail,
+                    UserName = adminUserName,
                     Email = adminEmail,
                     EmailConfirmed = true
                 };

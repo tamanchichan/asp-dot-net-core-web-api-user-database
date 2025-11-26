@@ -5,7 +5,7 @@ using asp_dot_net_core_web_api_users_database.Areas.Identity.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // Get the connection string from configuration
-var connectionString = builder.Configuration.GetConnectionString("UserDbContextConnection") ?? throw new InvalidOperationException("Connection string 'UserDbContextConnection' not found."); ;
+var connectionString = builder.Configuration.GetConnectionString("UserDbContextConnectionString") ?? throw new InvalidOperationException("Connection string 'UserDbContextConnection' not found."); ;
 
 // Add DbContext services
 builder.Services.AddDbContext<UserDbContext>(options => options.UseSqlServer(connectionString));
@@ -15,6 +15,9 @@ builder.Services.AddDefaultIdentity<IdentityUser>
     (options =>
     {
         options.SignIn.RequireConfirmedAccount = false;
+        options.Password.RequireDigit = false;
+        options.Password.RequiredLength = 3;
+        options.Password.RequireNonAlphanumeric = false;
         options.Password.RequireUppercase = false;
     })
         .AddRoles<IdentityRole>()
@@ -79,22 +82,92 @@ app.MapGet("/", () =>
 });
 
 // Retrieve users from the database
-app.MapGet("/users", (UserDbContext context) =>
+app.MapGet("/users", (UserDbContext context, string? email) =>
 {
-    //List<IdentityUser> users = context.Users.ToList();
-
-    // Create a DTO (UserDTO) or anonymous type (var) to avoid exposing sensitive information
-    // Select only specific fields to return
-    var users = context.Users
-        .Select(user => new { user.Id, user.UserName, user.Email })
-        .ToList();
-
-    if (users == null || users.Count == 0)
+    try
     {
-        return Results.NotFound("No users found.");
-    }
+        if (!string.IsNullOrEmpty(email))
+        {
+            IdentityUser user = context.Users.FirstOrDefault(u => u.Email == email);
 
-    return Results.Ok(users);
+            if (user == null)
+            {
+                throw new ArgumentOutOfRangeException(email, "User with the specified email not found.");
+            }
+
+            return Results.Ok(new
+            {
+                user.Id,
+                user.UserName,
+                user.Email
+            });
+        }
+        else
+        {
+            //List<IdentityUser> users = context.Users.ToList();
+
+            // Create a DTO (UserDTO) or anonymous type (var) to avoid exposing sensitive information
+            // Select only specific fields to return
+            var users = context.Users
+                .Select(user => new { user.Id, user.UserName, user.Email })
+                .ToList();
+
+            if (users == null || users.Count == 0)
+            {
+                throw new ArgumentNullException(nameof(users), "No users found in the database.");
+            }
+
+            return Results.Ok(users);
+        }
+    }
+    catch (ArgumentNullException ex)
+    {
+        return Results.NotFound(ex.Message);
+    }
+    catch (ArgumentOutOfRangeException ex)
+    {
+        return Results.NotFound(ex.Message);
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+});
+
+app.MapPut("/users/edit/user={email}", (UserDbContext context, string email, string userName) =>
+{
+    try
+    {
+        IdentityUser user = context.Users.FirstOrDefault(u => u.Email == email);
+
+        if (user == null)
+        {
+            return Results.NotFound(user);
+        }
+
+        if (String.IsNullOrEmpty(userName))
+        {
+            throw new ArgumentNullException(userName, "Username cannot be null or empty.");
+        }
+
+        user.UserName = userName;
+        context.SaveChangesAsync();
+
+        return Results.Ok(new
+        {
+            user.Id,
+            user.UserName,
+            user.Email
+        });
+    }
+    catch (ArgumentNullException ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
 });
 
 app.Run();

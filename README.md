@@ -17,7 +17,8 @@ a Docker container.**
 
 2. Create a new Data Context:
     - For example, "ApplicationDbContext"
-    - Either select your existing database or create a new one.      
+    - Either select your existing database or create a new one.
+      
 3. (Optional) Extend IdentityUser:
     - Create a custom User class if you need additional properties.Create a User class if you want to extend the default IdentityUser.
 
